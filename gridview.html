@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>grid view</title>
+<script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+<style>
+#imagezone {
+    position: relative;
+}
+#baseimage {
+    top: 0px;
+    left: 0px;
+    z-index: 100;
+}
+#topping {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 200;
+}
+</style>
+</head>
+<body>
+<div id="control">
+    <label>image:</label><input type="text" id="input" value="https://www.google.co.jp/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png">
+    <input type="button" value="show" id="go">
+    <input type="button" value="1" id="naturalsize">
+</div>
+<div id="imagezone">
+    <canvas id="baseimage"></canvas>
+    <canvas id="topping"></canvas>
+</div>
+<script>
+function drawGrid(targetCanvas) {
+    var gridsize = Math.max(
+        Math.round(Math.max(targetCanvas.width, targetCanvas.height) / 6),
+        Math.round(Math.min(targetCanvas.width, targetCanvas.height) / 4));
+    var context = topping.getContext("2d");
+    for (var x = (targetCanvas.width % gridsize) / 2; x < targetCanvas.width; x += gridsize) {
+        context.moveTo(x, 0);
+        context.lineTo(x, targetCanvas.height);
+    }
+    for (var y = (targetCanvas.height % gridsize) / 2; y < targetCanvas.height; y += gridsize) {
+        context.moveTo(0, y);
+        context.lineTo(targetCanvas.width, y);
+    }
+    context.stroke();
+}
+function draw(src, width, height) {
+    img.width = width; img.height = height;
+    img.onload = function () {
+        var baseimage = document.getElementById("baseimage");
+        baseimage.width = width;
+        baseimage.height = height;
+        var context = baseimage.getContext("2d");
+        context.drawImage(img, 0, 0, img.width, img.height);
+    };
+    img.src = src;
+
+    var topping = document.getElementById("topping");
+    topping.width = width;
+    topping.height = height;
+    drawGrid(topping);
+}
+$(document).ready(function () {
+    img = new Image(200, 200);
+    $("#go").on("click", function () {
+        draw($("#input").val(), 200, 200);
+    });
+    $("#naturalsize").on("click", function () {
+        draw($("#input").val(), img.naturalWidth, img.naturalHeight);
+    });
+});
+</script>
+</body>
+</html>
