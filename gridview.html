@@ -4,43 +4,32 @@
 <meta charset="UTF-8">
 <title>grid view</title>
 <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
-<style>
-#imagezone {
-    position: relative;
-}
-#baseimage {
-    top: 0px;
-    left: 0px;
-    z-index: 100;
-}
-#topping {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    z-index: 200;
-}
-</style>
 </head>
 <body>
 <div id="control">
     <label>image:</label><input type="text" id="input" value="https://www.google.co.jp/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png">
     <input type="button" value="show" id="show">
+    <input type="button" value="+" id="more">
+    <input type="button" value="-" id="less">
 </div>
-<div id="imagezone">
-    <canvas id="baseimage"></canvas>
-    <canvas id="topping"></canvas>
+<div id="imageZone">
+    <canvas id="imageCanvas"></canvas>
 </div>
 <script>
 function drawGrid(targetCanvas) {
-    var gridsize = Math.max(
+    var gridSize = Math.max(
         Math.round(Math.max(targetCanvas.width, targetCanvas.height) / 6),
         Math.round(Math.min(targetCanvas.width, targetCanvas.height) / 4));
-    var context = topping.getContext("2d");
-    for (var x = (targetCanvas.width % gridsize) / 2; x < targetCanvas.width; x += gridsize) {
+    gridSize = Math.round(gridSize * factor / 100);
+    var context = targetCanvas.getContext("2d");
+    context.globalCompositeOperation = "difference";
+    context.strokeStyle = "rgb(127, 127, 127)";
+    context.lineWidth = (gridSize + 1024) / 1024;
+    for (var x = (targetCanvas.width % gridSize) / 2; x < targetCanvas.width; x += gridSize) {
         context.moveTo(x, 0);
         context.lineTo(x, targetCanvas.height);
     }
-    for (var y = (targetCanvas.height % gridsize) / 2; y < targetCanvas.height; y += gridsize) {
+    for (var y = (targetCanvas.height % gridSize) / 2; y < targetCanvas.height; y += gridSize) {
         context.moveTo(0, y);
         context.lineTo(targetCanvas.width, y);
     }
@@ -51,23 +40,29 @@ function draw(src) {
         img.width = img.naturalWidth;
         img.height = img.naturalHeight;
 
-        var baseimage = document.getElementById("baseimage");
-        baseimage.width = img.width;
-        baseimage.height = img.height;
-        var context = baseimage.getContext("2d");
+        var imageCanvas = document.getElementById("imageCanvas");
+        imageCanvas.width = img.width;
+        imageCanvas.height = img.height;
+        var context = imageCanvas.getContext("2d");
         context.drawImage(img, 0, 0, img.width, img.height);
 
-        var topping = document.getElementById("topping");
-        topping.width = img.width;
-        topping.height = img.height;
-        drawGrid(topping);
+        drawGrid(imageCanvas);
     };
     img.src = src;
 }
 
 $(document).ready(function () {
     img = new Image(200, 200);
+    factor = 100;
     $("#show").on("click", function () {
+        draw($("#input").val());
+    });
+    $("#more").on("click", function () {
+        factor--;
+        draw($("#input").val());
+    });
+    $("#less").on("click", function () {
+        factor++;
         draw($("#input").val());
     });
 });
