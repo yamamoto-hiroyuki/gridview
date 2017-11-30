@@ -25,15 +25,32 @@ function drawGrid(targetCanvas) {
     context.globalCompositeOperation = "difference";
     context.strokeStyle = "rgb(127, 127, 127)";
     context.lineWidth = (gridSize + 1024) / 1024;
+    var dash = false;
     for (var x = (targetCanvas.width % gridSize) / 2; x < targetCanvas.width; x += gridSize) {
+        context.beginPath();
         context.moveTo(x, 0);
+        if (dash) {
+            context.setLineDash([5]);
+        } else {
+            context.setLineDash([]);
+        }
+        dash = !dash;
         context.lineTo(x, targetCanvas.height);
+        context.stroke();
     }
+    dash = false;
     for (var y = (targetCanvas.height % gridSize) / 2; y < targetCanvas.height; y += gridSize) {
+        context.beginPath();
         context.moveTo(0, y);
+        if (dash) {
+            context.setLineDash([5]);
+        } else {
+            context.setLineDash([]);
+        }
+        dash = !dash;
         context.lineTo(targetCanvas.width, y);
+        context.stroke();
     }
-    context.stroke();
 }
 function draw(src) {
     img.onload = function () {
