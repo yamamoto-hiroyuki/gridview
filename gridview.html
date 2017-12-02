@@ -9,6 +9,14 @@
     transform: rotate(90deg);
     transform-origin: 0% 100%;
 }
+.rotate180 {
+    transform: rotate(180deg);
+    transform-origin: 50% 50%;
+}
+.rotate270 {
+    transform: rotate(270deg);
+    transform-origin: 100% 0%;
+}
 </style>
 </head>
 <body>
@@ -81,6 +89,7 @@ function draw(src) {
 $(document).ready(function () {
     img = new Image(200, 200);
     factor = 100;
+    rotate = 0;
 	showGrid = true;
     $("#show").on("click", function () {
         draw($("#input").val());
@@ -94,7 +103,9 @@ $(document).ready(function () {
         draw($("#input").val());
     });
     $("#rotate").on("click", function () {
-        $("#imageCanvas").toggleClass("rotate90");
+        rotate = (rotate == 3 ? 0 : rotate + 1);
+        var classes = [ "", "rotate90", "rotate180", "rotate270"];
+        $("#imageCanvas").removeClass("rotate90 rotate180 rotate270").addClass(classes[rotate]);
     });
     $("#grid").on("click", function () {
 		showGrid = !showGrid;
