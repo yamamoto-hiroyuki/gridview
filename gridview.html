@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <title>grid view</title>
 <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+<style>
+.rotate90 {
+    transform: rotate(90deg);
+    transform-origin: 0% 100%;
+}
+</style>
 </head>
 <body>
 <div id="control">
@@ -11,6 +17,7 @@
     <input type="button" value="show" id="show">
     <input type="button" value="+" id="more">
     <input type="button" value="-" id="less">
+    <input type="button" value="r" id="rotate">
 </div>
 <div id="imageZone">
     <canvas id="imageCanvas"></canvas>
@@ -81,6 +88,9 @@ $(document).ready(function () {
     $("#less").on("click", function () {
         factor++;
         draw($("#input").val());
+    });
+    $("#rotate").on("click", function () {
+        $("#imageCanvas").toggleClass("rotate90");
     });
 });
 </script>
