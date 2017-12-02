@@ -18,6 +18,7 @@
     <input type="button" value="+" id="more">
     <input type="button" value="-" id="less">
     <input type="button" value="r" id="rotate">
+    <input type="button" value="g" id="grid">
 </div>
 <div id="imageZone">
     <canvas id="imageCanvas"></canvas>
@@ -70,7 +71,9 @@ function draw(src) {
         var context = imageCanvas.getContext("2d");
         context.drawImage(img, 0, 0, img.width, img.height);
 
-        drawGrid(imageCanvas);
+		if (showGrid) {
+			drawGrid(imageCanvas);
+		}
     };
     img.src = src;
 }
@@ -78,6 +81,7 @@ function draw(src) {
 $(document).ready(function () {
     img = new Image(200, 200);
     factor = 100;
+	showGrid = true;
     $("#show").on("click", function () {
         draw($("#input").val());
     });
@@ -92,6 +96,10 @@ $(document).ready(function () {
     $("#rotate").on("click", function () {
         $("#imageCanvas").toggleClass("rotate90");
     });
+    $("#grid").on("click", function () {
+		showGrid = !showGrid;
+        draw($("#input").val());
+	});
 });
 </script>
 </body>
