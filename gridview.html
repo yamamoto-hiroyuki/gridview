@@ -103,9 +103,24 @@ $(document).ready(function () {
         draw($("#input").val());
     });
     $("#rotate").on("click", function () {
-        rotate = (rotate == 3 ? 0 : rotate + 1);
-        var classes = [ "", "rotate90", "rotate180", "rotate270"];
-        $("#imageCanvas").removeClass("rotate90 rotate180 rotate270").addClass(classes[rotate]);
+        $("#imageCanvas").removeClass("rotate90 rotate180 rotate270").css({"position": "static", "top": "0px", "left": "0px"});
+        switch (rotate) {
+            case 0:
+                $("#imageCanvas").addClass("rotate90").css({"position": "relative", "top": "-" + img.height +"px"});
+                rotate++;
+                break;
+            case 1:
+                $("#imageCanvas").addClass("rotate180");
+                rotate++;
+                break;
+            case 2:
+                $("#imageCanvas").addClass("rotate270").css({"position": "relative", "left": "-" + img.width + "px"});
+                rotate++;
+                break;
+            default:
+                rotate = 0;
+                break;
+        }
     });
     $("#grid").on("click", function () {
 		showGrid = !showGrid;
