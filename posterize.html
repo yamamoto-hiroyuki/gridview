@@ -9,6 +9,7 @@
 		<input type="file" id="file">
 		<input type="button" id="show" value="show">
 		<input type="number" id="colors" value="7" min="2" max="15"><input type="button" id="posterize" value="posterize">
+		<input type="button" id="grayscale" value="grayscale">
 	</div>
 	<canvas id="canvas"></canvas>
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
@@ -30,7 +31,6 @@ $(document).ready(function () {
 	var canvas = document.getElementById("canvas");
 	var colors = document.getElementById("colors");
 	var image = new Image();
-	var savedImageData = null;	// we may use context.save()/restore().
 	$("#show").on("click", function (event) {
 		var reader = new FileReader();
 		reader.onload = function (event1) {
@@ -41,21 +41,38 @@ $(document).ready(function () {
 				var context = canvas.getContext("2d");
 				context.clearRect(0, 0, image.width, image.height);
 				context.drawImage(image, 0, 0);
-				savedImageData = context.getImageData(0, 0, image.width, image.height);
 			};
 			image.src = event1.target.result;
 		};
 		reader.readAsDataURL(file.files[0]);
 	});
-	var cloneImageData = function (source) {
-		return new ImageData(
-			new Uint8ClampedArray(source.data),
-			image.width, image.height);
-	};
 	$("#posterize").on("click", function (event) {
-		var imageData = cloneImageData(savedImageData);
+		$(canvas).hide();
+		var context = canvas.getContext("2d");
+//		context.drawImage(image, 0, 0);
+		var imageData = context.getImageData(0, 0, image.width, image.height);
 		posterize(imageData, colors.value);
-		canvas.getContext("2d").putImageData(imageData, 0, 0);
+		context.putImageData(imageData, 0, 0);
+		$(canvas).show();
+	});
+	var grayscale = function (imageData) {
+		for (var i = 0; i < imageData.data.length; i += 4) {
+			var x = (imageData.data[i]
+			 + imageData.data[i + 1]
+			 + imageData.data[i + 2]) / 3;
+			imageData.data[i]
+			 = imageData.data[i + 1]
+			 = imageData.data[i + 2] = x;
+		}
+	};
+	$("#grayscale").on("click", function () {
+		$(canvas).hide();
+		var context = canvas.getContext("2d");
+//		context.drawImage(image, 0, 0);
+		var imageData = context.getImageData(0, 0, image.width, image.height);
+		grayscale(imageData);
+		context.putImageData(imageData, 0, 0);
+		$(canvas).show();
 	});
 });
 </script>
