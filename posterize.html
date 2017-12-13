@@ -30,7 +30,7 @@ $(document).ready(function () {
 	var canvas = document.getElementById("canvas");
 	var colors = document.getElementById("colors");
 	var image = new Image();
-	var savedImageData = null;
+	var savedImageData = null;	// we may use context.save()/restore().
 	$("#show").on("click", function (event) {
 		var reader = new FileReader();
 		reader.onload = function (event1) {
@@ -47,10 +47,13 @@ $(document).ready(function () {
 		};
 		reader.readAsDataURL(file.files[0]);
 	});
+	var cloneImageData = function (source) {
+		return new ImageData(
+			new Uint8ClampedArray(source.data),
+			image.width, image.height);
+	};
 	$("#posterize").on("click", function (event) {
-		var imageData = new ImageData(
-				new Uint8ClampedArray(savedImageData.data),
-				image.width, image.height);
+		var imageData = cloneImageData(savedImageData);
 		posterize(imageData, colors.value);
 		canvas.getContext("2d").putImageData(imageData, 0, 0);
 	});
