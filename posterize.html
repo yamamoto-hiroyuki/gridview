@@ -10,9 +10,10 @@
 		<input type="button" id="show" value="show">
 		<input type="number" id="colors" value="7" min="2" max="15"><input type="button" id="posterize" value="posterize">
 		<input type="button" id="grayscale" value="grayscale">
+		<input type="button" id="rotate" value="rotate">
 	</div>
 	<canvas id="canvas"></canvas>
-<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="jquery-3.2.1.min.js"></script>
 <script>
 $(document).ready(function () {
 	var posterize = function (imageData, colors) {
@@ -31,11 +32,15 @@ $(document).ready(function () {
 	var canvas = document.getElementById("canvas");
 	var colors = document.getElementById("colors");
 	var image = new Image();
+    var reset = function () {
+        rotate(0);
+    };
 	$("#show").on("click", function (event) {
 		var reader = new FileReader();
 		reader.onload = function (event1) {
 			image.onload = function () {
-				$(canvas).prop({
+                reset();
+				$(canvas).attr({
 						"width": image.width,
 						"height": image.height});
 				var context = canvas.getContext("2d");
@@ -49,7 +54,6 @@ $(document).ready(function () {
 	$("#posterize").on("click", function (event) {
 		$(canvas).hide();
 		var context = canvas.getContext("2d");
-//		context.drawImage(image, 0, 0);
 		var imageData = context.getImageData(0, 0, image.width, image.height);
 		posterize(imageData, colors.value);
 		context.putImageData(imageData, 0, 0);
@@ -65,14 +69,57 @@ $(document).ready(function () {
 			 = imageData.data[i + 2] = x;
 		}
 	};
-	$("#grayscale").on("click", function () {
-		$(canvas).hide();
-		var context = canvas.getContext("2d");
-//		context.drawImage(image, 0, 0);
-		var imageData = context.getImageData(0, 0, image.width, image.height);
-		grayscale(imageData);
-		context.putImageData(imageData, 0, 0);
-		$(canvas).show();
+    $("#grayscale").on("click", function () {
+        var context = canvas.getContext("2d");
+        var imageData = context.getImageData(0, 0, image.width, image.height);
+        grayscale(imageData);
+        context.putImageData(imageData, 0, 0);
+    });
+    var rotate = function (degree) {
+        switch (degree) {
+        case 90:
+            $(canvas).css({
+                "transform": "rotate(90deg)",
+                "transform-origin": "0% 100%",
+                "position": "relative",
+                "top": "-" + canvas.height +"px",
+                "left": "0px"
+            });
+            break;
+        case 180 :
+            $(canvas).css({
+                "transform": "rotate(180deg)",
+                "transform-origin": "50% 50%",
+                "position:": "static",
+                "top": "0px",
+                "left": "0px"
+            });
+            break;
+        case 270:
+            $(canvas).css({
+                "transform": "rotate(270deg)",
+                "transform-origin": "100% 0%",
+                "position:": "static",
+                "top": "0px",
+                "left": "-" + canvas.width + "px"
+            });
+            break;
+        default: // 0
+            $(canvas).css({
+                "transform": "rotate(0deg)",
+                "transform-origin": "0% 0%",
+                "position:": "relative",
+                "top": "0px",
+                "left": "0px"
+            });
+        }
+       
+    };
+	$("#rotate").on("click", function () {
+        var before = (Number($(canvas).attr("rotate")) || 0);
+        var after = (before + 90) % 360;
+        rotate(after);
+        $(canvas).attr("rotate", after);
 	});
 });
 </script>
