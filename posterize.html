@@ -11,6 +11,7 @@
 		<input type="number" id="colors" value="7" min="2" max="15"><input type="button" id="posterize" value="posterize">
 		<input type="button" id="grayscale" value="grayscale">
 		<input type="button" id="rotate" value="rotate">
+		<input type="button" id="grid" value="grid"><input type="number" id="gridFactor" value="100">
 	</div>
 	<canvas id="canvas"></canvas>
 <script src="jquery-3.2.1.min.js"></script>
@@ -78,6 +79,42 @@ $(document).ready(function () {
         }
        
     };
+    var drawGrid = function (targetCanvas) {
+        var gridSize = Math.max(
+            Math.round(Math.max(targetCanvas.width, targetCanvas.height) / 6),
+            Math.round(Math.min(targetCanvas.width, targetCanvas.height) / 4));
+        gridSize = Math.round(gridSize * $("#gridFactor").val() / 100);
+        var context = targetCanvas.getContext("2d");
+        context.globalCompositeOperation = "difference";
+        context.strokeStyle = "rgb(127, 127, 127)";
+        context.lineWidth = (gridSize + 1024) / 1024;
+        var dash = false;
+        for (var x = (targetCanvas.width % gridSize) / 2; x < targetCanvas.width; x += gridSize) {
+            context.beginPath();
+            context.moveTo(x, 0);
+            if (dash) {
+                context.setLineDash([5]);
+            } else {
+                context.setLineDash([]);
+            }
+            dash = !dash;
+            context.lineTo(x, targetCanvas.height);
+            context.stroke();
+        }
+        dash = false;
+        for (var y = (targetCanvas.height % gridSize) / 2; y < targetCanvas.height; y += gridSize) {
+            context.beginPath();
+            context.moveTo(0, y);
+            if (dash) {
+                context.setLineDash([5]);
+            } else {
+                context.setLineDash([]);
+            }
+            dash = !dash;
+            context.lineTo(targetCanvas.width, y);
+            context.stroke();
+        }
+    }
     var showOriginal = function (src, proc) {
 		var reader = new FileReader();
 		reader.onload = function (event) {
@@ -104,15 +141,18 @@ $(document).ready(function () {
     var posterizeLevel = 0;
     var inGrayscale = false;
     var rotationDegree = 0;
+    var withGrid = false;
     var effect = function () {
 		var context = canvas.getContext("2d");
 		var imageData = context.getImageData(0, 0, image.width, image.height);
 
         if (posterizeLevel) posterize(imageData, colors.value);
         if (inGrayscale) grayscale(imageData);
-        rotate(rotationDegree);
 
 		context.putImageData(imageData, 0, 0);
+
+        if (withGrid) drawGrid(canvas);
+        rotate(rotationDegree);
     };  
 	$("#show").on("click", function () {
         reset();
@@ -130,6 +170,10 @@ $(document).ready(function () {
         rotationDegree = (rotationDegree + 90) % 360;
         showOriginal(file.files[0], effect);
 	});
+    $("#grid").on("click", function () {
+        withGrid = !withGrid;
+        showOriginal(file.files[0], effect);
+    });
 });
 </script>
 </body>
