@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>gridview</title>
+<style>
+#colors {
+	width: 3em;
+}
+#gridFactor {
+	width: 3em;
+}
+</style>
+</head>
+<body>
+	<div id="controls">
+		<input type="file" id="file">
+		<input type="button" id="show" value="show">
+		<input type="number" id="colors" value="7" min="2" max="15"><input type="button" id="posterize" value="posterize">
+		<input type="button" id="grayscale" value="grayscale">
+		<input type="button" id="rotate" value="rotate">
+		<input type="number" id="gridFactor" value="100" min="50" max="200"><input type="button" id="grid" value="grid">
+	</div>
+	<canvas id="canvas"></canvas>
+<script src="jquery-3.2.1.min.js"></script>
+<script>
+$(function () {
+	var show = function (file, canvas) {
+		var reader = new FileReader();
+		reader.onload = function (event) {
+			image.onload = function () {
+				$(canvas).attr({
+						"width": image.width,
+						"height": image.height});
+				var context = canvas.getContext("2d");
+				context.clearRect(0, 0, image.width, image.height);
+				context.drawImage(image, 0, 0);
+			};
+			image.src = event.target.result;
+		};
+		reader.readAsDataURL(file);
+	};
+	var posterize = function (imageData, colors) {
+		var levels = new Array(256);
+		for (var i = 0; i < colors; i++) {
+			levels.fill(256 / colors * i, 256 / colors * i, 256 / colors * (i + 1));
+		}
+		levels.fill(256 / colors * (colors - 1), 256 / colors * (colors - 1), 256);
+		for (var i = 0; i < imageData.data.length; i += 4) {
+			imageData.data[i] = levels[imageData.data[i]];
+			imageData.data[i + 1] = levels[imageData.data[i + 1]];
+			imageData.data[i + 2] = levels[imageData.data[i + 2]];
+		}
+	};
+	var grayscale = function (imageData) {
+		for (var i = 0; i < imageData.data.length; i += 4) {
+			var x = (imageData.data[i]
+			 + imageData.data[i + 1]
+			 + imageData.data[i + 2]) / 3;
+			imageData.data[i]
+			 = imageData.data[i + 1]
+			 = imageData.data[i + 2] = x;
+		}
+	};
+    var rotate = function (canvas, degree) {
+        switch (degree) {
+        case 90:
+            $(canvas).css({
+                "transform": "rotate(90deg)",
+                "transform-origin": "0% 100%",
+                "position": "relative",
+                "top": "-" + canvas.height +"px",
+                "left": "0px"
+            });
+            break;
+        case 180 :
+            $(canvas).css({
+                "transform": "rotate(180deg)",
+                "transform-origin": "50% 50%",
+                "position:": "static",
+                "top": "0px",
+                "left": "0px"
+            });
+            break;
+        case 270:
+            $(canvas).css({
+                "transform": "rotate(270deg)",
+                "transform-origin": "100% 0%",
+                "position:": "static",
+                "top": "0px",
+                "left": "-" + canvas.width + "px"
+            });
+            break;
+        default: // 0
+            $(canvas).css({
+                "transform": "rotate(0deg)",
+                "transform-origin": "0% 0%",
+                "position:": "relative",
+                "top": "0px",
+                "left": "0px"
+            });
+        }
+	};
+	var drawGrid = function (canvas, factor) {
+		var width = canvas.width;
+		var height = canvas.height;
+		var gridSize = Math.max(
+			Math.round(Math.max(width, height) / 6),
+			Math.round(Math.min(width, height) / 4));
+		gridSize = Math.round(gridSize * factor / 100);
+		var context = canvas.getContext("2d");
+		context.globalCompositeOperation = "difference";
+		context.strokeStyle = "rgb(127, 127, 127)";
+		context.lineWidth = (gridSize + 1024) / 1024;
+		var dash = false;
+		for (var x = (width % gridSize) / 2; x < width; x += gridSize) {
+			context.beginPath();
+			context.moveTo(x, 0);
+			if (dash) {
+				context.setLineDash([5]);
+			} else {
+				context.setLineDash([]);
+			}
+			dash = !dash;
+			context.lineTo(x, height);
+			context.stroke();
+		}
+		dash = false;
+		for (var y = (height % gridSize) / 2; y < height; y += gridSize) {
+			context.beginPath();
+			context.moveTo(0, y);
+			if (dash) {
+				context.setLineDash([5]);
+			} else {
+				context.setLineDash([]);
+			}
+			dash = !dash;
+			context.lineTo(width, y);
+			context.stroke();
+		}
+	};	
+	var file = document.getElementById("file");
+	var canvas = document.getElementById("canvas");
+	var colors = document.getElementById("colors");
+	var gridFactor = document.getElementById("gridFactor");
+	var image = new Image();
+    var reset = function () {
+		$(canvas).attr("posterize", false);
+		$(canvas).attr("grayscale", false);
+		$(canvas).attr("rotate", 0);
+		rotate(canvas, 0);
+		$(canvas).attr("grid", false);
+    };
+	$("#show").on("click", function () {
+		reset();
+		show(file.files[0], canvas);
+	});
+	$("#posterize").on("click", function () {
+		$(canvas).attr("posterize", !$(canvas).attr("posterize"));
+		$(canvas).hide();
+		var context = canvas.getContext("2d");
+		var imageData = context.getImageData(0, 0, image.width, image.height);
+		posterize(imageData, colors.value);
+		context.putImageData(imageData, 0, 0);
+		$(canvas).show();
+	});
+    $("#grayscale").on("click", function () {
+		$(canvas).attr("grayscale", !$(canvas).attr("grayscale"));
+        var context = canvas.getContext("2d");
+        var imageData = context.getImageData(0, 0, image.width, image.height);
+        grayscale(imageData);
+        context.putImageData(imageData, 0, 0);
+    });
+	$("#rotate").on("click", function () {
+        var before = (Number($(canvas).attr("rotate")) || 0);
+        var after = (before + 90) % 360;
+        rotate(canvas, after);
+        $(canvas).attr("rotate", after);
+	});
+	$("#grid").on("click", function () {
+		$(canvas).attr("grid", !$(canvas).attr("grid"));
+		$(canvas).hide();
+		drawGrid(canvas, gridFactor.value);
+		$(canvas).show();
+	})
+});
+</script>
+</body>
+</html>

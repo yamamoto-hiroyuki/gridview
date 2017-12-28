@@ -21,28 +21,43 @@
 </head>
 <body>
 <div id="control">
-    <label>image:</label><input type="text" id="input" value="https://www.google.co.jp/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png">
+    <label>image:</label><input type="file" id="input">
     <input type="button" value="show" id="show">
     <input type="button" value="+" id="more">
     <input type="button" value="-" id="less">
     <input type="button" value="r" id="rotate">
     <input type="button" value="g" id="grid">
+    <input type="button" value="p" id="posterize">
 </div>
 <div id="imageZone">
     <canvas id="imageCanvas"></canvas>
 </div>
 <script>
+function posterize(imageData, colors) {
+    var levels = new Array(256);
+    for (var i = 0; i < colors; i++) {
+        levels.fill(256 / colors * i, 256 / colors * i, 256 / colors * (i + 1));
+    }
+    levels.fill(256 / colors * (colors - 1), 256 / colors * (colors - 1), 256);
+    for (var i = 0; i < imageData.data.length; i += 4) {
+        imageData.data[i] = levels[imageData.data[i]];
+        imageData.data[i + 1] = levels[imageData.data[i + 1]];
+        imageData.data[i + 2] = levels[imageData.data[i + 2]];
+    }
+}
 function drawGrid(targetCanvas) {
+    var width = targetCanvas.width;
+    var height = targetCanvas.height;
     var gridSize = Math.max(
-        Math.round(Math.max(targetCanvas.width, targetCanvas.height) / 6),
-        Math.round(Math.min(targetCanvas.width, targetCanvas.height) / 4));
+        Math.round(Math.max(width, height) / 6),
+        Math.round(Math.min(width, height) / 4));
     gridSize = Math.round(gridSize * factor / 100);
     var context = targetCanvas.getContext("2d");
     context.globalCompositeOperation = "difference";
     context.strokeStyle = "rgb(127, 127, 127)";
     context.lineWidth = (gridSize + 1024) / 1024;
     var dash = false;
-    for (var x = (targetCanvas.width % gridSize) / 2; x < targetCanvas.width; x += gridSize) {
+    for (var x = (width % gridSize) / 2; x < width; x += gridSize) {
         context.beginPath();
         context.moveTo(x, 0);
         if (dash) {
@@ -51,11 +66,11 @@ function drawGrid(targetCanvas) {
             context.setLineDash([]);
         }
         dash = !dash;
-        context.lineTo(x, targetCanvas.height);
+        context.lineTo(x, height);
         context.stroke();
     }
     dash = false;
-    for (var y = (targetCanvas.height % gridSize) / 2; y < targetCanvas.height; y += gridSize) {
+    for (var y = (height % gridSize) / 2; y < height; y += gridSize) {
         context.beginPath();
         context.moveTo(0, y);
         if (dash) {
@@ -64,35 +79,37 @@ function drawGrid(targetCanvas) {
             context.setLineDash([]);
         }
         dash = !dash;
-        context.lineTo(targetCanvas.width, y);
+        context.lineTo(width, y);
         context.stroke();
     }
 }
 function draw(src) {
-    img.onload = function () {
-        img.width = img.naturalWidth;
-        img.height = img.naturalHeight;
-
-        var imageCanvas = document.getElementById("imageCanvas");
-        imageCanvas.width = img.width;
-        imageCanvas.height = img.height;
-        var context = imageCanvas.getContext("2d");
-        context.drawImage(img, 0, 0, img.width, img.height);
-
-		if (showGrid) {
-			drawGrid(imageCanvas);
-		}
+    var reader = new FileReader();
+    reader.onload = function (readerOnloadEvent) {
+        img.onload = function () {
+            var canvas = document.getElementById("imageCanvas");
+            $(canvas).prop({
+                    "width": img.width,
+                    "height": img.height});
+            var context = canvas.getContext("2d");
+            context.clearRect(0, 0, img.width, img.height);
+            context.drawImage(img, 0, 0);
+            savedImageData = context.getImageData(0, 0, img.width, img.height);
+        };
+        img.src = readerOnloadEvent.target.result;
     };
-    img.src = src;
+    reader.readAsDataURL(src);
 }
 
 $(document).ready(function () {
-    img = new Image(200, 200);
+    img = new Image();
     factor = 100;
     rotate = 0;
-	showGrid = true;
+    showGrid = true;
+    posterizeColors = 1;
+    savedImageData = null;
     $("#show").on("click", function () {
-        draw($("#input").val());
+        draw(document.getElementById("input").files[0]);
     });
     $("#more").on("click", function () {
         factor++;
@@ -126,6 +143,14 @@ $(document).ready(function () {
 		showGrid = !showGrid;
         draw($("#input").val());
 	});
+    $("#posterize").on("click", function () {
+        if (posterizeColors == 1) {
+            posterizeColors = 10;
+        } else {
+            posterizeColors--;
+        }
+        draw($("#input").val());
+    });
 });
 </script>
 </body>
