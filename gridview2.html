@@ -54,9 +54,10 @@ $(function () {
 	};
 	var grayscale = function (imageData) {
 		for (var i = 0; i < imageData.data.length; i += 4) {
-			var x = (imageData.data[i]
-			 + imageData.data[i + 1]
-			 + imageData.data[i + 2]) / 3;
+			// not RGB-Average, do Y of YCgCo
+			var x = imageData.data[i] / 4
+			 + imageData.data[i + 1] / 2
+			 + imageData.data[i + 2] / 4;
 			imageData.data[i]
 			 = imageData.data[i + 1]
 			 = imageData.data[i + 2] = x;
